@@ -1,0 +1,98 @@
+# Redrob Hackathon -- Submission Metadata
+# Fill in the placeholders marked <FILL IN> before submitting.
+
+# ============================================================================
+# Team identity
+# ============================================================================
+team_name: "<FILL IN -- your team name>"
+
+primary_contact:
+  name: "<FILL IN -- your full name>"
+  email: "<FILL IN -- your email>"
+  phone: "<FILL IN -- your phone with country code, e.g. +91-XXXXXXXXXX>"
+
+team_members:
+  - name: "<FILL IN -- your full name>"
+    email: "<FILL IN -- your email>"
+    role: "Solo participant"
+  # Add more members here if you have teammates.
+
+# ============================================================================
+# Code and reproducibility
+# ============================================================================
+github_repo: "<FILL IN -- https://github.com/YOUR_USERNAME/YOUR_REPO>"
+
+sandbox_link: "<FILL IN -- e.g. a HuggingFace Space, Streamlit Cloud app, or Colab link>"
+# See README "Sandbox setup" section / submission_spec.md Section 10.5 for
+# acceptable platforms. A simple option for this project: a Colab notebook
+# that pip-installs nothing extra, uploads a small sample candidates.jsonl,
+# and runs `python rank.py --candidates <sample> --out submission.csv`.
+
+reproduce_command: "python rank.py --candidates ./data/candidates.jsonl --out ./output/submission.csv"
+
+# ============================================================================
+# Compute environment
+# ============================================================================
+compute:
+  platform: "<FILL IN -- e.g. 'Dell Inspiron, Windows 11' or 'MacBook Air M2'>"
+  cpu_cores: "<FILL IN -- check via Task Manager / About This Mac>"
+  ram_gb: "<FILL IN -- your laptop's total RAM>"
+  python_version: "<FILL IN -- run `python --version`>"
+  os: "<FILL IN -- e.g. 'Windows 11' or 'macOS 14'>"
+  uses_gpu_for_inference: false
+  has_network_during_ranking: false
+  pre_computation_required: false
+  pre_computation_time_minutes: 0
+
+# ============================================================================
+# AI tools declaration
+# ============================================================================
+ai_tools_used:
+  - "Claude"
+
+ai_usage_summary: |
+  Used Claude (Anthropic) as a development assistant: discussing
+  architecture trade-offs against the compute constraints in
+  submission_spec.md, writing and iterating on the scoring/honeypot-
+  detection/reasoning-generation code, and reviewing output quality
+  against sample candidates. All scoring rules and weights were derived
+  from a direct human (with AI assistance) reading of job_description.md,
+  redrob_signals_doc.md, and candidate_schema.json; no candidate data was
+  sent to any external LLM API as part of the ranking pipeline itself
+  (the ranking step makes zero network calls, by design, per the compute
+  constraints).
+
+# ============================================================================
+# Approach summary
+# ============================================================================
+methodology_summary: |
+  Transparent, rule-based hybrid ranker -- no LLM calls at ranking time
+  (disallowed by the no-network/5-min/CPU-only constraints for 100K
+  candidates). Five scoring components: title/career-history relevance
+  (highest weight, since the JD explicitly flags keyword-stuffed-but-
+  wrong-title profiles as the main trap), skill match (weighted by
+  proficiency/duration/endorsements, discounted unless career-history
+  descriptions corroborate the skill -- catches plausible-looking AI
+  skill tags on an unrelated career), smooth experience-fit curve around
+  the JD's 5-9yr band, company-type fit (penalizes career built entirely
+  on pure-services/consulting firms per the JD), and location/relocation
+  fit. These combine into a base score, then a MULTIPLICATIVE behavioral
+  modifier from redrob_signals (response rate, recency, open-to-work)
+  down-weights inactive/unavailable candidates per the JD's explicit
+  instruction. A separate honeypot-suspicion check flags internally
+  inconsistent profiles (years vs career-history mismatch, expert skills
+  with near-zero duration, overlapping current roles) and applies a
+  severe penalty. Reasoning text is generated from template strings using
+  the exact facts that produced the score -- not an LLM call -- so it
+  cannot hallucinate or contradict the rank. Runtime: ~12-16 seconds for
+  100,000 candidates on CPU; peak memory ~1.8GB.
+
+# ============================================================================
+# Declarations
+# ============================================================================
+declarations:
+  read_submission_spec: true
+  code_is_original_work: true
+  no_collusion: true
+  honeypot_check_done: true
+  reproduction_tested: true

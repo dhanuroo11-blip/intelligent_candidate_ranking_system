@@ -1,0 +1,16 @@
+# No external dependencies are required to run rank.py.
+#
+# The ranking pipeline (rank.py + everything in src/) uses only the Python
+# standard library: json, gzip, csv, argparse, datetime, pathlib. This is
+# intentional -- it keeps the system trivially reproducible inside the
+# Stage 3 sandboxed Docker container (no pip install step that could fail
+# or drift between environments) and keeps runtime far inside the 5-minute
+# budget even on a constrained CPU.
+#
+# If you extend this project with an embeddings-based semantic-similarity
+# component (optional, see README "Possible extensions"), you would add:
+#   sentence-transformers
+#   scikit-learn
+#   numpy
+# and pre-compute embeddings OFFLINE (outside the 5-minute ranking budget),
+# loading only the precomputed vectors during the actual ranking step.
