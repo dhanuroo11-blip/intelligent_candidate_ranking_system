@@ -51,5 +51,17 @@ def sort_with_deterministic_tiebreak(results):
     candidate_id ascending, exactly matching what validate_submission.py
     checks for ("Equal scores at ranks X and Y: tie-break requires
     candidate_id ascending").
+
+    IMPORTANT: we round final_score to the same precision used in the
+    output CSV (4 decimal places) BEFORE sorting. The validator only sees
+    the printed string, so two candidates whose raw floats differ at the
+    5th decimal (e.g. 0.90481 vs 0.90479) but print identically as 0.9048
+    must be treated as tied for tie-break purposes -- otherwise our
+    internal sort order and the validator's view of "tied or not" can
+    disagree, which is exactly what caused a real validation failure
+    during testing.
     """
-    return sorted(results, key=lambda r: (-r["final_score"], r["candidate_id"]))
+    return sorted(
+        results,
+        key=lambda r: (-round(r["final_score"], 4), r["candidate_id"])
+    )

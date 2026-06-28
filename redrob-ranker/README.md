@@ -163,11 +163,27 @@ ordering, candidate_id format, duplicates).
   vocabulary observed in `sample_candidates.json`. The full 100K pool may
   contain skill names not yet in these lists; if so, `src/jd_requirements.py`
   is the single place to extend them.
-- **The honeypot suspicion threshold** (`HONEYPOT_SUSPICION_THRESHOLD` in
-  `src/honeypot_detection.py`) was tuned by inspecting the 50-candidate
-  sample, which contains no actual honeypots (expected, given ~80 out of
-  100,000). It should be re-checked against the full pool's honeypot rate
-  once available.
+- **Honeypot detection catches ~21 of the ~80 honeypots** the README
+  says exist in the full pool (verified by running detection across all
+  100,000 candidates). This sounds low, but **the metric that actually
+  matters for disqualification is the honeypot rate in your top 100**,
+  which is 0% on the real dataset (verified). Two additional candidate
+  heuristics were tested and deliberately rejected: (1) skill
+  `duration_months` exceeding total `years_of_experience` -- flagged
+  13,449 candidates, clearly just normal noise (skills used at an earlier
+  job) rather than a honeypot signal; (2) career history start dates
+  predating earliest education graduation by >1 year -- flagged 11,538
+  candidates, again just ordinary part-time-work-during-study noise. Both
+  were far too noisy to use without risking false-positives against real
+  candidates, so they were left out rather than bolted on under time
+  pressure. The remaining ~59 undetected honeypots are likely encoded via
+  a signal not directly present in the schema (e.g. the JD's literal
+  example of years-of-experience exceeding how long the employer has
+  existed -- there is no `company_founded_year` field to check this
+  against directly). A stronger version of this system would need either
+  an external company-age lookup or a more targeted, hand-inspected
+  sample of the actual honeypot candidates to reverse-engineer their
+  exact construction pattern.
 
 ## AI tool usage
 

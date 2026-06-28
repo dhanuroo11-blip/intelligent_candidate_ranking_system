@@ -77,15 +77,20 @@ methodology_summary: |
   the JD's 5-9yr band, company-type fit (penalizes career built entirely
   on pure-services/consulting firms per the JD), and location/relocation
   fit. These combine into a base score, then a MULTIPLICATIVE behavioral
-  modifier from redrob_signals (response rate, recency, open-to-work)
+  modifier from redrob_signals (response rate, recency, open-to-work) --
+  pure down-weighting only, capped at 1.0, never boosts above true fit --
   down-weights inactive/unavailable candidates per the JD's explicit
   instruction. A separate honeypot-suspicion check flags internally
   inconsistent profiles (years vs career-history mismatch, expert skills
-  with near-zero duration, overlapping current roles) and applies a
-  severe penalty. Reasoning text is generated from template strings using
-  the exact facts that produced the score -- not an LLM call -- so it
-  cannot hallucinate or contradict the rank. Runtime: ~12-16 seconds for
-  100,000 candidates on CPU; peak memory ~1.8GB.
+  with near-zero duration, overlapping current roles, single-role
+  duration exceeding total experience) and applies a severe penalty;
+  verified 0% honeypot rate in the actual top 100 on the real 100K pool,
+  though the detector only catches ~21 of the ~80 honeypots in the full
+  pool (two additional heuristics were tested and rejected as too noisy
+  -- see README "Known limitations"). Reasoning text is generated from
+  template strings using the exact facts that produced the score -- not
+  an LLM call -- so it cannot hallucinate or contradict the rank. Runtime
+  on the real 100,000-candidate file: ~13 seconds; peak memory ~1.8GB.
 
 # ============================================================================
 # Declarations

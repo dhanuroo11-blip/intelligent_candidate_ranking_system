@@ -260,7 +260,15 @@ def score_behavioral_modifier(candidate):
     6 months and has a 5% recruiter response rate is, for hiring purposes,
     not actually available. Down-weight them appropriately."
 
-    Returns (modifier in roughly [0.3, 1.1], reason string).
+    This is intentionally a PURE DOWN-WEIGHTING function: it starts at
+    1.0 (full credit) and only ever subtracts for availability red flags.
+    It never adds above 1.0 -- the JD asks us to penalize unavailability,
+    not to reward availability with a score boost above true fit. (An
+    earlier version allowed small positive bumps, which combined with
+    base_score could push final_score past 1.0 and get clipped, silently
+    erasing real differentiation between distinct top candidates.)
+
+    Returns (modifier in [0.3, 1.0], reason string).
     """
     signals = candidate.get("redrob_signals", {})
 
@@ -271,10 +279,7 @@ def score_behavioral_modifier(candidate):
     modifier = 1.0
     reasons = []
 
-    # Open to work is a strong positive signal
-    if open_to_work:
-        modifier += 0.05
-    else:
+    if not open_to_work:
         modifier -= 0.15
         reasons.append("not marked open to work")
 
@@ -286,9 +291,6 @@ def score_behavioral_modifier(candidate):
     elif response_rate < 0.4:
         modifier -= 0.10
         reasons.append(f"below-average recruiter response rate ({response_rate:.0%})")
-    elif response_rate >= 0.6:
-        modifier += 0.05
-        reasons.append(f"strong recruiter response rate ({response_rate:.0%})")
 
     # Recency of activity (simple string comparison works since dates are
     # ISO format YYYY-MM-DD and we just need a coarse recency bucket)
@@ -305,12 +307,10 @@ def score_behavioral_modifier(candidate):
             elif days_inactive > 90:
                 modifier -= 0.15
                 reasons.append(f"inactive for {days_inactive} days")
-            elif days_inactive <= 14:
-                modifier += 0.05
         except (ValueError, TypeError):
             pass  # unparseable date, skip this sub-check rather than crash
 
-    modifier = max(0.3, min(1.1, modifier))
+    modifier = max(0.3, min(1.0, modifier))
     reason_text = "; ".join(reasons) if reasons else "good platform engagement"
     return modifier, reason_text
 
